@@ -2,39 +2,58 @@ import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 
 export const useCartStore = defineStore("cart", () => {
-  const cart = ref([
-    {
-      id: 1,
-      title: "The Hunger Games",
-      description: "The Hunger",
-      price: 100000,
-      image:
-        "https://images-na.ssl-images-amazon.com/images/I/51Zt3J9ZQWL._SX331_BO1,204,203,200_.jpg",
-    },
-    {
-      id: 2,
-      title: "The Hunger Games",
-      description: "The Hunger",
-      price: 100000,
-      image:
-        "https://images-na.ssl-images-amazon.com/images/I/51Zt3J9ZQWL._SX331_BO1,204,203,200_.jpg",
-    },
-  ]);
+  const cart = ref([]);
+  const noPayment = ref(0);
+  const method = ref("");
+  const amount = ref(0);
 
   const getCart = computed(() => cart.value);
+  const getNoPayment = computed(() => noPayment.value);
+  const getMethod = computed(() => method.value);
+  const getAmount = computed(() => {
+    return amount.value;
+  });
+
   const priceTotal = computed(() => {
+    return cart.value.reduce((sum, item) => sum + item.price * item.qty, 0);
+  });
+
+  function setNoPayment(no) {
+    noPayment.value = no;
+  }
+
+  function setMethod(methods) {
+    method.value = methods;
+  }
+
+  function setAmount(amounts) {
+    amount.value = amounts;
+  }
+
+  const getQty = computed(() => {
     let sum = 0;
     cart.value.forEach((item) => {
-      sum += item.price;
+      sum += item.qty;
     });
     return sum;
   });
 
   function addToCart(book) {
+    const existing = cart.value.find((item) => item.id === book.id);
+    if (existing) {
+      existing.qty++;
+      return;
+    }
+
     cart.value.push(book);
   }
 
   function removeFromCart(book) {
+    const existing = cart.value.find((item) => item.id === book.id);
+    if (existing.qty > 1) {
+      existing.qty--;
+      return;
+    }
     cart.value = cart.value.filter((item) => item.id !== book.id);
   }
 
@@ -42,5 +61,44 @@ export const useCartStore = defineStore("cart", () => {
     cart.value = [];
   }
 
-  return { cart, getCart, priceTotal, addToCart, removeFromCart, clearCart };
+  async function checkout(payload) {
+    await fetch("http://127.0.0.1:8000/api/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify({
+        method: payload.method,
+        amount: payload.priceTotal,
+        products: payload.products,
+        total: payload.total,
+      }),
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        if (json.code === 200) {
+          setNoPayment(json.no_payment);
+          setMethod(json.method);
+          setAmount(json.amount);
+          clearCart();
+        } else {
+          alert(json.message);
+        }
+      });
+  }
+
+  return {
+    cart,
+    getCart,
+    priceTotal,
+    getQty,
+    addToCart,
+    removeFromCart,
+    clearCart,
+    checkout,
+    getNoPayment,
+    getMethod,
+    getAmount,
+  };
 });
