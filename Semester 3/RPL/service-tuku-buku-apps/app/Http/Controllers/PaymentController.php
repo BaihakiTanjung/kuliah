@@ -115,6 +115,19 @@ class PaymentController extends Controller
         }
     }
 
+    public function changeStatus(Request $request, $id)
+    {
+        $payment = Payment::find($id);
+        $payment->status = $request->status;
+        $payment->save();
+
+        return response()->json([
+            'status' => 'success',
+            'code' => 200,
+            'data' => $payment
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      *

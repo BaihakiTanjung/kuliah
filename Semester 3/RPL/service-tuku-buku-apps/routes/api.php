@@ -25,7 +25,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/user', 'App\Http\Controllers\AuthController@user');
     Route::post('/checkout', 'App\Http\Controllers\PaymentController@create');
     Route::get('/list-user', 'App\Http\Controllers\UserController@index');
+    Route::delete('/users/{id}', 'App\Http\Controllers\UserController@destroy');
     Route::get('/payment', 'App\Http\Controllers\PaymentController@index');
+    Route::post('/payment/change-status/{id}', 'App\Http\Controllers\PaymentController@changeStatus');
+    Route::post('/products', 'App\Http\Controllers\ProductController@store');
+    Route::delete('/products/{id}', 'App\Http\Controllers\ProductController@destroy');
 });
 
 Route::get('/products', 'App\Http\Controllers\ProductController@index');

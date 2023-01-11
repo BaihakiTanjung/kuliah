@@ -5,7 +5,11 @@ import { useProductStore } from "@/stores/product";
 import { useCartStore } from "@/stores/cart";
 import { useUserStore } from "@/stores/user";
 import { usePaymentStore } from "@/stores/payment";
-import { TrashIcon, ClipboardDocumentIcon } from "@heroicons/vue/24/solid";
+import {
+  TrashIcon,
+  ClipboardDocumentIcon,
+  CheckCircleIcon,
+} from "@heroicons/vue/24/solid";
 import { watch } from "vue";
 
 const authStore = useAuthStore();
@@ -150,8 +154,50 @@ watch(
     }
   }
 );
-</script>
 
+const handleModalAddProduct = () => {
+  const a = document.createElement("a");
+  a.href = "#modal-add-product";
+  a.click();
+};
+
+const formAddProduct = reactive({
+  title: "test",
+  description: "test",
+  image: "test",
+  qty: 1,
+  price: 10,
+  stock: 10,
+});
+
+const handleSubmitAddProduct = async () => {
+  await productStore.addProduct(formAddProduct);
+
+  const a = document.createElement("a");
+  a.href = "#";
+  a.click();
+
+  productStore.fetchProducts();
+};
+
+const handleDeleteProduct = async (id) => {
+  await productStore.deleteProduct(id);
+
+  productStore.fetchProducts();
+};
+
+const handleDeleteUser = async (id) => {
+  await userStore.deleteUser(id);
+
+  userStore.fetchUsers();
+};
+
+const handleChangeStatus = async (id, status) => {
+  await paymentStore.changeStatus(id, status);
+
+  paymentStore.fetchPayments();
+};
+</script>
 
 
 <template>
@@ -446,6 +492,55 @@ watch(
   </div>
   <!-- End Modal Detail -->
 
+  <!-- Modal Product Add -->
+  <div class="py-5 modal modal-large" id="modal-add-product">
+    <div class="modal-box">
+      <div class="flex items-center justify-between align-middle">
+        <h2 class="mt-5 text-xl font-bold">Add Product</h2>
+        <a href="#" class="my-auto btn btn-ghost btn-sm">Close</a>
+      </div>
+      <form @submit.prevent="handleSubmitAddProduct" class="mt-5">
+        <div class="grid grid-cols-2 gap-3">
+          <input
+            type="text"
+            placeholder="Title"
+            class="w-full col-span-2 input input-primary"
+            v-model="formAddProduct.title"
+          />
+          <textarea
+            class="col-span-2 textarea textarea-primary"
+            placeholder="Description"
+            v-model="formAddProduct.description"
+          ></textarea>
+          <input
+            type="text"
+            placeholder="URL Image"
+            class="w-full col-span-2 input input-primary"
+            v-model="formAddProduct.image"
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            class="w-full max-w-xs input input-primary"
+            v-model="formAddProduct.price"
+          />
+          <input
+            type="number"
+            placeholder="Stock"
+            class="w-full max-w-xs input input-primary"
+            v-model="formAddProduct.stock"
+          />
+        </div>
+        <div class="flex justify-center">
+          <button type="submit" class="mt-5 btn btn-primary">
+            Add Product
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- End Modal Product Add -->
+
   <!-- Navbar -->
   <div class="mt-5 rounded-lg navbar bg-base-300">
     <div class="flex-1">
@@ -453,7 +548,7 @@ watch(
     </div>
     <div class="flex-none">
       <div v-if="isAuth">
-        <div class="mr-2 dropdown dropdown-end">
+        <div v-if="isRole !== 'admin'" class="mr-2 dropdown dropdown-end">
           <label tabindex="0" class="btn btn-ghost btn-circle">
             <div class="indicator">
               <svg
@@ -631,7 +726,7 @@ watch(
   </section>
 
   <!-- Admin -->
-  <section class="m-5">
+  <section v-else class="m-5">
     <div class="flex justify-center tabs">
       <a
         class="tab"
@@ -674,7 +769,7 @@ watch(
               <th>Price</th>
               <th>Qty</th>
               <th>Stock</th>
-              <th>Supplier</th>
+              <!-- <th>Supplier</th> -->
               <th>Action</th>
             </tr>
           </thead>
@@ -687,8 +782,13 @@ watch(
               <td>{{ currency.format(product.price) }}</td>
               <td>{{ product.qty }}</td>
               <td>{{ product.stock }}</td>
-              <td>{{ product.supplier_id }}</td>
-              <td><TrashIcon class="w-5 h-5 text-error"></TrashIcon></td>
+              <!-- <td>{{ product.supplier_id }}</td> -->
+              <td>
+                <TrashIcon
+                  @click="handleDeleteProduct(product.id)"
+                  class="w-5 h-5 cursor-pointer text-error"
+                ></TrashIcon>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -711,7 +811,12 @@ watch(
               <td>{{ user.name }}</td>
               <td>{{ user.email }}</td>
               <td>{{ user.role }}</td>
-              <td><TrashIcon class="w-5 h-5 text-error"></TrashIcon></td>
+              <td>
+                <TrashIcon
+                  @click="handleDeleteUser(user.id)"
+                  class="w-5 h-5 cursor-pointer text-error"
+                ></TrashIcon>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -756,7 +861,16 @@ watch(
               </td>
               <td>{{ payment.transaction?.total }}</td>
               <td>{{ payment.transaction?.user?.name }}</td>
-              <td><TrashIcon class="w-5 h-5 text-error"></TrashIcon></td>
+              <td class="flex gap-3">
+                <CheckCircleIcon
+                  @click="handleChangeStatus(payment.id, 'success')"
+                  class="w-5 h-5 cursor-pointer text-success"
+                ></CheckCircleIcon>
+                <CheckCircleIcon
+                  @click="handleChangeStatus(payment.id, 'failed')"
+                  class="w-5 h-5 cursor-pointer text-error"
+                ></CheckCircleIcon>
+              </td>
             </tr>
           </tbody>
         </table>

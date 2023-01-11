@@ -118,6 +118,31 @@ export const useProductStore = defineStore("product", () => {
       .then((json) => setProducts(json));
   }
 
+  async function addProduct(data) {
+    await fetch("http://127.0.0.1:8000/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((json) => json);
+  }
+
+  async function deleteProduct(id) {
+    await fetch(`http://127.0.0.1:8000/api/products/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => json);
+  }
+
   return {
     products,
     getProducts,
@@ -126,5 +151,7 @@ export const useProductStore = defineStore("product", () => {
     setProductDetail,
     fetchProducts,
     searchProduct,
+    addProduct,
+    deleteProduct,
   };
 });

@@ -28,5 +28,17 @@ export const useUserStore = defineStore("user", () => {
       });
   }
 
-  return { getUsers, fetchUsers };
+  async function deleteUser(id) {
+    await fetch(`http://127.0.0.1:8000/api/users/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((json) => json);
+  }
+
+  return { getUsers, fetchUsers, deleteUser };
 });

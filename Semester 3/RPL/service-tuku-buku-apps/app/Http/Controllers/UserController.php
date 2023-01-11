@@ -19,4 +19,17 @@ class UserController extends Controller
             ]
         );
     }
+
+    public function destroy($id)
+    {
+        $response = User::destroy($id);
+
+        return response()->json(
+            [
+                'status' => 'success',
+                'code' => 200,
+                'data' => $response
+            ]
+        );
+    }
 }

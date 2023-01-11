@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 
 class ProductController extends Controller
@@ -38,7 +39,30 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        $lastCode = Product::orderBy('id', 'desc')->first();
+        $nameCode = 'B' . $lastCode->id + 1;
+
+        $response = Product::create(
+            [
+                'code' => $nameCode,
+                'title' => $request->title,
+                'description' => $request->description,
+                'image' => $request->image,
+                'price' => $request->price,
+                'qty' => $request->qty,
+                'stock' => $request->stock,
+                'supplier_id' => 1,
+            ]
+        );
+
+        return response()->json(
+            [
+                'status' => 'success',
+                'code' => 200,
+                'data' => $response
+            ]
+        );
     }
 
     /**
@@ -81,8 +105,17 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Product $product)
+    public function destroy($id)
     {
-        //
+
+        $response = Product::destroy($id);
+
+        return response()->json(
+            [
+                'status' => 'success',
+                'code' => 200,
+                'data' => $response
+            ]
+        );
     }
 }
